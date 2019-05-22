@@ -73,12 +73,12 @@ public class UserServiceImpl extends BaseService<User, Integer>
 
     @Override
     public void update(User user) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+       userRepository.update(user);
     }
 
     @Override
     public Collection<User> findByNombreApellido(String nombre, String apellido) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return userRepository.findByNombreApellido(nombre, apellido);
     }
 
     @Override

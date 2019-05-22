@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import py.una.pol.paronline.api.users.entity.User;
 import py.una.pol.paronline.commons.domain.entity.Entity;
 import py.una.pol.paronline.commons.utils.DataBaseUtil;
@@ -17,7 +19,17 @@ import py.una.pol.paronline.commons.utils.DataBaseUtil;
  */
 public class JdbcUserRepository implements UserRepository<User, Integer> {
 
-    private Map<String, User> entities;
+    private Connection connection;
+    private PreparedStatement pstmt;
+
+    public JdbcUserRepository() {
+    }
+    
+    public JdbcUserRepository(Connection connection, PreparedStatement pstmt) {
+        this.connection = connection;
+        this.pstmt = pstmt;
+    }
+    
 
     /**
      * Check if given user name already exist.
@@ -31,7 +43,7 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
         try {
             return this.findByNombreApellido(nombre, apellido).size() > 0;
         } catch (Exception ex) {
-            //Exception Handler
+            Logger.getLogger(JdbcUserRepository.class.getName()).log(Level.FATAL, null, ex);
         }
         return false;
     }
@@ -42,12 +54,10 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
      */
     @Override
     public void add(User entity) {
-        Connection c = null;
-        PreparedStatement pstmt = null;
-
+        
         try {
-            c = DataBaseUtil.getConnection();
-            pstmt = c.prepareStatement("INSERT INTO cliente (nombre, apellido, email, login_name, passwd, tipo_cliente) values (?, ?, ?, ?, ?, ?)");
+            connection = DataBaseUtil.getConnection();
+            pstmt = connection.prepareStatement("INSERT INTO cliente (nombre, apellido, email, login_name, passwd, tipo_cliente) values (?, ?, ?, ?, ?, ?)");
 
             pstmt.setString(1, entity.getNombre());
             pstmt.setString(2, entity.getApellido());
@@ -64,9 +74,9 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
                 if (pstmt != null) {
                     pstmt.close();
                 }
-                DataBaseUtil.closeConnection(c);
+                DataBaseUtil.closeConnection(connection);
             } catch (SQLException ex) {
-                //Logger.getLogger(UsuarioManager.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(JdbcUserRepository.class.getName()).log(Level.FATAL, null, ex);
             }
         }
     }
@@ -77,12 +87,10 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
      */
     @Override
     public void remove(Integer id) {
-        Connection c = null;
-        PreparedStatement pstmt = null;
-
+        
         try {
-            c = DataBaseUtil.getConnection();
-            pstmt = c.prepareStatement("DELETE FROM cliente WHERE id_cliente = ?");
+            connection = DataBaseUtil.getConnection();
+            pstmt = connection.prepareStatement("DELETE FROM cliente WHERE id_cliente = ?");
 
             pstmt.setInt(1, id);
 
@@ -94,9 +102,9 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
                 if (pstmt != null) {
                     pstmt.close();
                 }
-                DataBaseUtil.closeConnection(c);
+                DataBaseUtil.closeConnection(connection);
             } catch (SQLException ex) {
-                //Logger.getLogger(UsuarioManager.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(JdbcUserRepository.class.getName()).log(Level.FATAL, null, ex);
             }
         }
     }
@@ -107,12 +115,10 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
      */
     @Override
     public void update(User entity) {
-        Connection c = null;
-        PreparedStatement pstmt = null;
 
         try {
-            c = DataBaseUtil.getConnection();
-            pstmt = c.prepareStatement("UPDATE cliente SET nombre = ?, apellido = ?, email = ?, login_name = ?, passwd = ?, tipo_cliente = ? WHERE id_cliente = ?");
+            connection = DataBaseUtil.getConnection();
+            pstmt = connection.prepareStatement("UPDATE cliente SET nombre = ?, apellido = ?, email = ?, login_name = ?, passwd = ?, tipo_cliente = ? WHERE id_cliente = ?");
 
             pstmt.setString(1, entity.getNombre());
             pstmt.setString(2, entity.getApellido());
@@ -130,9 +136,9 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
                 if (pstmt != null) {
                     pstmt.close();
                 }
-                DataBaseUtil.closeConnection(c);
+                DataBaseUtil.closeConnection(connection);
             } catch (SQLException ex) {
-                //Logger.getLogger(UsuarioManager.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(JdbcUserRepository.class.getName()).log(Level.FATAL, null, ex);
             }
         }
     }
@@ -144,7 +150,9 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
      */
     @Override
     public boolean contains(Integer id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        User user = (User) get(id);
+        
+        return user != null;
     }
 
     /**
@@ -155,14 +163,11 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
     @Override
     public Entity get(Integer id) {
         Entity retValue = null;
-
-        Connection c = null;
-        PreparedStatement pstmt = null;
         ResultSet rs = null;
 
         try {
-            c = DataBaseUtil.getConnection();
-            pstmt = c.prepareStatement("SELECT * FROM cliente WHERE id_cliente = ?");
+            connection = DataBaseUtil.getConnection();
+            pstmt = connection.prepareStatement("SELECT * FROM cliente WHERE id_cliente = ?");
 
             pstmt.setInt(1, id);
 
@@ -182,9 +187,9 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
                 if (pstmt != null) {
                     pstmt.close();
                 }
-                DataBaseUtil.closeConnection(c);
+                DataBaseUtil.closeConnection(connection);
             } catch (SQLException ex) {
-                //Logger.getLogger(UsuarioManager.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(JdbcUserRepository.class.getName()).log(Level.FATAL, null, ex);
             }
         }
 
@@ -198,14 +203,11 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
     @Override
     public Collection<User> getAll() {
         Collection<User> retValue = new ArrayList();
-
-        Connection c = null;
-        PreparedStatement pstmt = null;
         ResultSet rs = null;
 
         try {
-            c = DataBaseUtil.getConnection();
-            pstmt = c.prepareStatement("SELECT * FROM cliente");
+            connection = DataBaseUtil.getConnection();
+            pstmt = connection.prepareStatement("SELECT * FROM cliente");
 
             rs = pstmt.executeQuery();
 
@@ -223,9 +225,9 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
                 if (pstmt != null) {
                     pstmt.close();
                 }
-                DataBaseUtil.closeConnection(c);
+                DataBaseUtil.closeConnection(connection);
             } catch (SQLException ex) {
-                //Logger.getLogger(UsuarioManager.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(JdbcUserRepository.class.getName()).log(Level.FATAL, null, ex);
             }
         }
 
@@ -242,14 +244,11 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
     @Override
     public Collection<User> findByNombreApellido(String nombre, String apellido) throws Exception {
         Collection<User> retValue = new ArrayList();
-
-        Connection c = null;
-        PreparedStatement pstmt = null;
         ResultSet rs = null;
 
         try {
-            c = DataBaseUtil.getConnection();
-            pstmt = c.prepareStatement("SELECT * FROM cliente WHERE nombre = ? and apellido = ?");
+            connection = DataBaseUtil.getConnection();
+            pstmt = connection.prepareStatement("SELECT * FROM cliente WHERE nombre = ? and apellido = ?");
 
             pstmt.setString(1, nombre);
             pstmt.setString(2, apellido);
@@ -270,9 +269,9 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
                 if (pstmt != null) {
                     pstmt.close();
                 }
-                DataBaseUtil.closeConnection(c);
+                DataBaseUtil.closeConnection(connection);
             } catch (SQLException ex) {
-                //Logger.getLogger(UsuarioManager.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(JdbcUserRepository.class.getName()).log(Level.FATAL, null, ex);
             }
         }
 
@@ -284,7 +283,7 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
         try {
             return this.findByLoginName(loginName).size() > 0;
         } catch (Exception ex) {
-            //Exception Handler
+            Logger.getLogger(JdbcUserRepository.class.getName()).log(Level.FATAL, null, ex);
         }
         return false;
     }
@@ -292,14 +291,11 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
     @Override
     public Collection<User> findByLoginName(String loginName) throws Exception {
         Collection<User> retValue = new ArrayList();
-
-        Connection c = null;
-        PreparedStatement pstmt = null;
         ResultSet rs = null;
 
         try {
-            c = DataBaseUtil.getConnection();
-            pstmt = c.prepareStatement("SELECT * FROM cliente WHERE login_name = ?");
+            connection = DataBaseUtil.getConnection();
+            pstmt = connection.prepareStatement("SELECT * FROM cliente WHERE login_name = ?");
 
             pstmt.setString(1, loginName);
 
@@ -319,9 +315,9 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
                 if (pstmt != null) {
                     pstmt.close();
                 }
-                DataBaseUtil.closeConnection(c);
+                DataBaseUtil.closeConnection(connection);
             } catch (SQLException ex) {
-                //Logger.getLogger(UsuarioManager.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(JdbcUserRepository.class.getName()).log(Level.FATAL, null, ex);
             }
         }
 

@@ -1,6 +1,7 @@
 package py.una.pol.paronline.api.users.repository;
 
 import java.util.Collection;
+import py.una.pol.paronline.commons.domain.entity.Entity;
 import py.una.pol.paronline.commons.domain.repository.Repository;
 
 /**
@@ -42,4 +43,13 @@ public interface UserRepository<User, Integer> extends Repository<User, Integer>
      * @throws Exception
      */
     public Collection<User> findByLoginName(String loginName) throws Exception;
+    
+    /**
+     * 
+     * @param loginName
+     * @param passwd
+     * @return
+     * @throws Exception 
+     */
+    public Entity authenticate(String loginName, String passwd) throws Exception;
 }

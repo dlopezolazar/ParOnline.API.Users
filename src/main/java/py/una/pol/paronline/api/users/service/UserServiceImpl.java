@@ -3,9 +3,9 @@ package py.una.pol.paronline.api.users.service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-import py.una.pol.paronline.api.users.entity.User;
 import py.una.pol.paronline.api.users.repository.UserRepository;
 import py.una.pol.paronline.commons.domain.entity.Entity;
+import py.una.pol.paronline.commons.domain.entity.users.User;
 import py.una.pol.paronline.commons.domain.service.BaseService;
 
 /**
@@ -84,6 +84,11 @@ public class UserServiceImpl extends BaseService<User, Integer>
     @Override
     public Collection<User> findByCriteria(Map<String, ArrayList<String>> name) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Entity authenticate(String nombre, String password) throws Exception {
+        return userRepository.authenticate(nombre, password);
     }
 
 }

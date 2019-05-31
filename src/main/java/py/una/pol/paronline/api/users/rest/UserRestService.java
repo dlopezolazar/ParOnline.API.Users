@@ -16,9 +16,11 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import py.una.pol.paronline.api.users.entity.User;
+import javax.ws.rs.QueryParam;
 import py.una.pol.paronline.api.users.repository.JdbcUserRepository;
 import py.una.pol.paronline.api.users.service.UserServiceImpl;
+import py.una.pol.paronline.commons.domain.entity.users.User;
+import py.una.pol.paronline.commons.domain.vo.users.LoginPostReq;
 
 /**
  *
@@ -47,6 +49,33 @@ public class UserRestService {
             Logger.getLogger(UserRestService.class.getName()).log(Level.SEVERE, null, ex);
         }
         return entity;
+    }
+    
+    
+    @GET
+    @Produces("application/json")
+    public User getUserByName(@QueryParam("nombre") String nombre, @QueryParam("apellido") String apellido) {
+        User entity = null;
+        try {
+            entity = (User) userService.findByNombreApellido(nombre, apellido);
+        } catch (Exception ex) {
+            Logger.getLogger(UserRestService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return entity;
+    }
+    
+    @POST
+    @Path("/authenticate")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public User authenticateUser(LoginPostReq entity) {
+        User user = null;
+        try {
+            user = (User) userService.authenticate(entity.getLoginName(), entity.getPasswd());
+        } catch (Exception ex) {
+            Logger.getLogger(UserRestService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return user;
     }
 
     @POST

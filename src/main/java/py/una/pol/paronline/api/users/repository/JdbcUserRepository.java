@@ -6,11 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import py.una.pol.paronline.api.users.entity.User;
 import py.una.pol.paronline.commons.domain.entity.Entity;
+import py.una.pol.paronline.commons.domain.entity.users.User;
 import py.una.pol.paronline.commons.utils.DataBaseUtil;
 
 /**
@@ -303,6 +302,43 @@ public class JdbcUserRepository implements UserRepository<User, Integer> {
 
             if (rs.next()) {
                 retValue.add(new User(rs.getInt("id_cliente"), rs.getString("nombre"), rs.getString("apellido"), rs.getString("email"), rs.getString("login_name"), rs.getString("passwd"), rs.getInt("tipo_cliente")));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+                DataBaseUtil.closeConnection(connection);
+            } catch (SQLException ex) {
+                Logger.getLogger(JdbcUserRepository.class.getName()).log(Level.FATAL, null, ex);
+            }
+        }
+
+        return retValue;
+    }
+    
+    @Override
+    public Entity authenticate(String loginName, String passwd) {
+        Entity retValue = null;
+        ResultSet rs = null;
+
+        try {
+            connection = DataBaseUtil.getConnection();
+            pstmt = connection.prepareStatement("SELECT * FROM cliente WHERE login_name = ? AND passwd = ?");
+
+            pstmt.setString(1, loginName);
+            pstmt.setString(2, passwd);
+
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                retValue = new User(rs.getInt("id_cliente"), rs.getString("nombre"), rs.getString("apellido"), rs.getString("email"), rs.getString("login_name"), rs.getString("passwd"), rs.getInt("tipo_cliente"));
             }
 
         } catch (Exception e) {
